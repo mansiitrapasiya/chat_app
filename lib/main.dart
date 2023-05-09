@@ -1,7 +1,7 @@
 import 'package:chat_app/auth/login.dart';
 
-
 import 'package:chat_app/scrrens/myhomepage.dart';
+import 'package:chat_app/splash.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -21,9 +21,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: FirebaseAuth.instance.currentUser == null
-          ? LoginPage()
-          : MyHomePage(),
+      home: Splashscreen(),
+      // home: FirebaseAuth.instance.currentUser == null
+      // ? LoginPage()
+      // : MyHomePage(),
     );
   }
 }
