@@ -35,8 +35,9 @@ class _SplashscreenState extends State<Splashscreen> {
         Navigator.pushReplacement(
             context,
             CupertinoPageRoute(
-              builder: (context) => MyHomePage()
-            ));
+                builder: (context) => BotomBarr(
+                      navIndex: 0,
+                    )));
       } else {
         setState(() {
           isShowBottom = true;
@@ -53,12 +54,16 @@ class _SplashscreenState extends State<Splashscreen> {
         if (await UserData.userExist()) {
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) {
-            return MyHomePage();
+            return BotomBarr(
+              navIndex: 0,
+            );
           }));
         } else {
           UserData.createuser().then((value) => Navigator.pushReplacement(
                   context, MaterialPageRoute(builder: (context) {
-                return MyHomePage();
+                return BotomBarr(
+                  navIndex: 0,
+                );
               })));
         }
       }
@@ -81,7 +86,7 @@ class _SplashscreenState extends State<Splashscreen> {
 
       return await UserData.auth.signInWithCredential(credential);
     } catch (e) {
-      Diallougs.showSnackBar(context, 'Check YOur Internet Connection,s');
+      Diallougs.showSnackBar(context, 'Check YOur Internet Connection');
       return null;
     }
   }
@@ -138,7 +143,7 @@ class _SplashscreenState extends State<Splashscreen> {
                             height: 15,
                           ),
                           const Padding(
-                            padding: const EdgeInsets.only(right: 25),
+                            padding: EdgeInsets.only(right: 25),
                             child: Text(
                               textAlign: TextAlign.justify,
                               'Chat system is a peer-to-peer system where the users exchange text messages and files between the system\'s users',
@@ -170,7 +175,7 @@ class _SplashscreenState extends State<Splashscreen> {
                                       'assets/p3.png',
                                       height: 30,
                                     ),
-                                    SizedBox(
+                                    const SizedBox(
                                       width: 10,
                                     ),
                                     const Text('Continue with google',
