@@ -16,6 +16,7 @@ class _ProfilePhotoState extends State<ProfilePhoto> {
       // alignment: Alignment.topCenter,
       scale: 0.7,
       child: Dialog(
+        
         child: Hero(
           tag: widget.chatuser.image,
           child: Container(

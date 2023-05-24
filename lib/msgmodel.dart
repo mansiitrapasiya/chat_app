@@ -59,6 +59,8 @@ switch(value){
   case 'image':
    
   return Type.image;
+  case 'video':
+  return Type.video;
    case 'pdf':
   return Type.pdf;
   default :
@@ -67,5 +69,5 @@ switch(value){
 
 }
 
-enum Type { text, image,pdf,none 
+enum Type { text, video,image,pdf,none 
 }

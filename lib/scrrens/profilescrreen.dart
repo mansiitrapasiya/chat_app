@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:chat_app/data/userdata.dart';
 import 'package:chat_app/helper/dilouge.dart';
 import 'package:chat_app/model.dart';
@@ -10,6 +12,18 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+
+class Debouncer {
+  final int milliseconds;
+  Timer? _timer;
+
+  Debouncer({required this.milliseconds});
+
+  run(VoidCallback action) {
+    _timer?.cancel();
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+}
 
 class ProfileScrreen extends StatefulWidget {
   final Chatuser user;
@@ -22,8 +36,9 @@ class ProfileScrreen extends StatefulWidget {
 class _ProfileScrreenState extends State<ProfileScrreen> {
   final formkey = GlobalKey<FormState>();
   XFile? _image;
+  final _debouncer = Debouncer(milliseconds: 500);
 
-  _imageFromCamera() async {
+   _imageFromCamera() async {
     XFile? image = await ImagePicker().pickImage(
       source: ImageSource.camera,
     );
@@ -118,46 +133,46 @@ class _ProfileScrreenState extends State<ProfileScrreen> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.only(top: 50),
+        padding: EdgeInsets.only(top: 50),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(children: [
-              Center(
-                child: _image != null
-                    ? Hero(
-                        tag: FileImage(File(_image!.path)),
-                        child: CircleAvatar(
-                          backgroundImage: FileImage(File(_image!.path)),
-                          radius: 40,
-                        ),
-                      )
-                    : Hero(
-                        tag: UserData.user.photoURL.toString(),
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundImage: NetworkImage(
-                            UserData.user.photoURL.toString(),
+            Center(
+              child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    _image != null
+                        ? Hero(
+                            tag: FileImage(File(_image!.path)),
+                            child: CircleAvatar(
+                              backgroundImage: FileImage(File(_image!.path)),
+                              radius: 60,
+                            ),
+                          )
+                        : Hero(
+                            tag: UserData.user.photoURL.toString(),
+                            child: CircleAvatar(
+                              radius: 60,
+                              backgroundImage: NetworkImage(
+                                UserData.mee.image,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-              ),
-              Positioned(
-                  left: 190,
-                  top: 40,
-                  child: InkWell(
-                    onTap: () {
-                      showModelsheet();
-                    },
-                    child: Container(
-                        height: 35,
-                        width: 35,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 180, 218, 248)),
-                        child: Icon(Icons.edit)),
-                  )),
-            ]),
+                    InkWell(
+                      onTap: () {
+                        showModelsheet();
+                      },
+                      child: Container(
+                          height: 35,
+                          width: 35,
+                          decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color.fromARGB(255, 180, 218, 248)),
+                          child: const Icon(Icons.edit)),
+                    ),
+                  ]),
+            ),
             const SizedBox(
               height: 20,
             ),
@@ -175,33 +190,14 @@ class _ProfileScrreenState extends State<ProfileScrreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
+              padding: EdgeInsets.only(left: 15, right: 15, top: 20),
               child: TextFormField(
-                initialValue: widget.user.email,
-                textAlignVertical: TextAlignVertical.bottom,
-                cursorColor: Colors.black,
-                style: const TextStyle(color: Colors.black, fontFamily: "Acme"),
-                decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.transparent),
-                        borderRadius: BorderRadius.circular(5.5)),
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.transparent),
-                        borderRadius: BorderRadius.circular(5)),
-                    prefixIcon: const Icon(
-                      Icons.person,
-                      color: Colors.black,
-                      size: 25,
-                    ),
-                    fillColor: const Color.fromARGB(255, 180, 218, 248),
-                    filled: true),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
-              child: TextFormField(
-                initialValue: widget.user.name,
+                onChanged: (value) {
+                  _debouncer.run(() {
+                    UserData.updateAbout(value);
+                  });
+                },
+                initialValue: widget.user.about,
                 textAlignVertical: TextAlignVertical.bottom,
                 cursorColor: Colors.black,
                 style: const TextStyle(color: Colors.black, fontFamily: "Acme"),
@@ -222,17 +218,6 @@ class _ProfileScrreenState extends State<ProfileScrreen> {
                     filled: true),
               ),
             ),
-            // SizedBox(
-            //   height: 20,
-            // ),
-            // Center(
-            //   child: ElevatedButton.icon(
-            //       style: ElevatedButton.styleFrom(
-            //           backgroundColor: Colors.grey, shape: StadiumBorder()),
-            //       onPressed: () {},
-            //       icon: Icon(Icons.edit),
-            //       label: Text('Update')),
-            // )
           ],
         ),
       ),
@@ -267,6 +252,7 @@ class _ProfileScrreenState extends State<ProfileScrreen> {
                     InkWell(
                       onTap: () {
                         _imageFromGallery();
+                        // pickVideo();
                       },
                       child: SizedBox(
                         height: 70,
@@ -298,3 +284,57 @@ class _ProfileScrreenState extends State<ProfileScrreen> {
         });
   }
 }
+
+
+
+// const Color darkBlue = Color.fromARGB(255, 18, 32, 47);
+
+// class Debouncer {
+//   final int milliseconds;
+//   Timer? _timer;
+
+//   Debouncer({required this.milliseconds});
+
+//   run(VoidCallback action) {
+//     _timer?.cancel();
+//     _timer = Timer(Duration(milliseconds: milliseconds), action);
+//   }
+// }
+
+// void main() {
+//   runApp(MyApp());
+// }
+
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       theme: ThemeData.dark().copyWith(
+//         scaffoldBackgroundColor: darkBlue,
+//       ),
+//       debugShowCheckedModeBanner: false,
+//       home: Scaffold(
+//         body: Center(
+//           child: MyWidget(),
+//         ),
+//       ),
+//     ); 
+//   }
+// }
+
+// class MyWidget extends StatelessWidget {
+  
+//   final _debouncer = Debouncer(milliseconds:500);
+  
+//   @override
+//   Widget build(BuildContext context) {
+//     return TextField(
+//     onChanged: (value){
+//       print("normnal: "+value);
+      
+//       _debouncer.run((){
+//          print("debounce: "+value);
+//       });
+//     },);
+//   }
+// }

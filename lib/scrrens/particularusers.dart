@@ -39,41 +39,41 @@ class _ParticularUserState extends State<ParticularUser> {
         ],
       ),
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15, top: 10),
-            child: InkWell(
-              onTap: () async {
-                Diallougs.showProgressBar(context);
-                await UserData.auth.signOut().then(
-                  (value) async {
-                    await GoogleSignIn().signOut().then((value) {
-                      //for hinding progress dialouge
-                      Navigator.pop(context);
-                      //for moving home screen
-                      Navigator.pop(context);
+      // appBar: AppBar(
+      //   backgroundColor: Colors.black,
+      //   actions: [
+      //     Padding(
+      //       padding: const EdgeInsets.only(right: 15, top: 10),
+      //       child: InkWell(
+      //         onTap: () async {
+      //           Diallougs.showProgressBar(context);
+      //           await UserData.auth.signOut().then(
+      //             (value) async {
+      //               await GoogleSignIn().signOut().then((value) {
+      //                 //for hinding progress dialouge
+      //                 Navigator.pop(context);
+      //                 //for moving home screen
+      //                 Navigator.pop(context);
 
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) {
-                        return Splashscreen();
-                      }));
-                    });
-                  },
-                );
-              },
-              child: const Text(
-                'Log Out',
-                style: TextStyle(
-                    fontFamily: "Acme",
-                    color: Color.fromARGB(255, 180, 218, 248),
-                    fontSize: 20),
-              ),
-            ),
-          ),
-        ],
-      ),
+      //                 Navigator.pushReplacement(context,
+      //                     MaterialPageRoute(builder: (context) {
+      //                   return Splashscreen();
+      //                 }));
+      //               });
+      //             },
+      //           );
+      //         },
+      //         child: const Text(
+      //           'Log Out',
+      //           style: TextStyle(
+      //               fontFamily: "Acme",
+      //               color: Color.fromARGB(255, 180, 218, 248),
+      //               fontSize: 20),
+      //         ),
+      //       ),
+      //     ),
+      //   ],
+      // ),
       body: Padding(
         padding: const EdgeInsets.only(top: 50),
         child: Column(

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:chat_app/model.dart';
@@ -26,6 +27,7 @@ class UserData {
     await fmessaging.getToken().then((t) {
       if (t != null) {
         mee.pushToken = t;
+        print(t);
       }
     });
   }
@@ -59,7 +61,7 @@ class UserData {
     }
   }
 
-//==================for checking user is exist or noy===================
+//==================for checking user is exist or not===================
   static Future<bool> userExist() async {
     return (await firestore.collection('users').doc(user.uid).get()).exists;
   }
@@ -78,6 +80,7 @@ class UserData {
     });
   }
 
+  /// ===========for create new user===========///////////////////
   static Future<void> createuser() async {
     final time = DateTime.now().microsecondsSinceEpoch.toString();
     final chatuser = Chatuser(
@@ -96,6 +99,14 @@ class UserData {
         .set(chatuser.toJson());
   }
 
+  //for getting all users from firebase
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAlluser() {
+    return firestore
+        .collection("users")
+        .where('id', isNotEqualTo: user.uid)
+        .snapshots();
+  }
+
   static Future<void> updateProfile(File file) async {
     ////getting file extention
     final ext = file.path.split('.').last;
@@ -112,28 +123,29 @@ class UserData {
     });
   }
 
-  //for getting all users from firebase
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAlluser() {
-    return firestore
-        .collection("users")
-        .where('id', isNotEqualTo: user.uid)
-        .snapshots();
+  static Future<void> updateAbout(String about) async {
+    final users = FirebaseFirestore.instance.collection('users');
+    return users.doc(mee.id).update({'about': about}).then((value) {
+      mee.about = about;
+    });
   }
 
-  ///============================for chat screen ===================================///
+  ///============================for chat screen ===================================////////
   ///  useful converstation id//////
-  static String getConversation(String id) => user.uid.hashCode <= id.hashCode
+  static String getConversationID(String id) => user.uid.hashCode <= id.hashCode
       ? '${user.uid}_$id'
       : '${id}_${user.uid}';
+
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllmessage(
       Chatuser user) {
     return firestore
-        .collection("chats/${getConversation(user.id)}/messages/")
+        .collection("chats/${getConversationID(user.id)}/messages/")
         .orderBy('sent', descending: true)
         .snapshots();
   }
 
-  static Future<void> sendMsg(Chatuser chatuser, String msg, Type type,String pdfName) async {
+  static Future<void> sendMsg(
+      Chatuser chatuser, String msg, Type type, String pdfName) async {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
     final MesaageModel messagee = MesaageModel(
         formId: user.uid,
@@ -144,8 +156,8 @@ class UserData {
         sent: time,
         type: type);
 
-    final ref =
-        firestore.collection("chats/${getConversation(chatuser.id)}/messages");
+    final ref = firestore
+        .collection("chats/${getConversationID(chatuser.id)}/messages");
     await ref.doc(time).set(messagee.toJson()).then(
           (value) =>
               sendNotification(chatuser, type == Type.text ? msg : 'image'),
@@ -156,7 +168,7 @@ class UserData {
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastmessage(
       Chatuser user) {
     return firestore
-        .collection("chats/${getConversation(user.id)}/messages")
+        .collection("chats/${getConversationID(user.id)}/messages")
         .orderBy('sent', descending: true)
         .limit(1)
         .snapshots();
@@ -166,27 +178,27 @@ class UserData {
   static Future<void> chatImage(Chatuser chatuser, File file) async {
     final ext = file.path.split('.').last;
     final ref = storage.ref().child(
-        "profile_picture/${getConversation(chatuser.id)}/${DateTime.now().microsecondsSinceEpoch}.$ext");
+        "profile_picture/${getConversationID(chatuser.id)}/${DateTime.now().microsecondsSinceEpoch}.$ext");
     await ref
         .putFile(file, SettableMetadata(contentType: 'image/$ext'))
         .then((p0) async {
       //update image in firebase
       final imagUrl = await ref.getDownloadURL();
-      await sendMsg(chatuser, imagUrl, Type.image,"");
+      await sendMsg(chatuser, imagUrl, Type.image, "");
     });
   }
 
-static Future<void> chatPdf(Chatuser chatuser, File file, String pdfName ) async {
+  static Future<void> chatPdf(
+      Chatuser chatuser, File file, String pdfName) async {
     final ext = file.path.split('.').last;
     final ref = storage.ref().child(
-        "pdf/${getConversation(chatuser.id)}/${DateTime.now().microsecondsSinceEpoch}.$ext");
+        "pdf/${getConversationID(chatuser.id)}/${DateTime.now().microsecondsSinceEpoch}.$ext");
     await ref
         .putFile(file, SettableMetadata(contentType: 'document/$ext'))
         .then((p0) async {
-          
       //update image in firebase
       final imagUrl = await ref.getDownloadURL();
-      await sendMsg(chatuser, imagUrl, Type.pdf,pdfName);
+      await sendMsg(chatuser, imagUrl, Type.pdf, pdfName);
     });
   }
 
@@ -200,6 +212,7 @@ static Future<void> chatPdf(Chatuser chatuser, File file, String pdfName ) async
   }
 
 //-----for hetting specific user info--------------////////////
+/////////////// for chat page appBar
 
   static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(
       Chatuser chatuser) {
@@ -212,7 +225,7 @@ static Future<void> chatPdf(Chatuser chatuser, File file, String pdfName ) async
   //-----------------delete message--------------/
   static Future<void> deleteMessage(MesaageModel message) async {
     await firestore
-        .collection('chats/${getConversation(message.told)}/messages/')
+        .collection('chats/${getConversationID(message.told)}/messages/')
         .doc(message.sent)
         .delete();
 
@@ -220,9 +233,38 @@ static Future<void> chatPdf(Chatuser chatuser, File file, String pdfName ) async
       await storage.refFromURL(message.msg).delete();
     }
   }
+//----------------------deleteUSer==================================
 
+  static Future<void> deleteChat(Chatuser user) async {
+    firestore
+        .collection('chats')
+        .doc(getConversationID(user.id))
+        .collection('messages')
+        .get()
+        .then((snapshot) {
+      for (DocumentSnapshot ds in snapshot.docs) {
+        ds.reference.delete();
+      }
+      ;
+    });
+  }
 
-    //================for add particular user====================
+  // Future<void> deleteUser(String id) async {
+  //   if (FirebaseAuth.instance.currentUser?.uid != null) {
+  //     await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(FirebaseAuth.instance.currentUser!.uid)
+  //         .collection('chat')
+  //         .doc(id)
+  //         .delete();
+  //     abc.remove(id);
+  //     setState(() {});
+  //   } else {
+  //     throw Error();
+  //   }
+  // }
+
+  //================for add particular user====================
 
   // static Future<bool> addChatUser(String email) async {
   //   final data = await firestore

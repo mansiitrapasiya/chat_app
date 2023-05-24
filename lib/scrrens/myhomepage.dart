@@ -1,18 +1,15 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/data/userdata.dart';
-import 'package:chat_app/helper/dilouge.dart';
 import 'package:chat_app/main.dart';
 import 'package:chat_app/model.dart';
 import 'package:chat_app/noti.dart';
-import 'package:chat_app/scrrens/profilescrreen.dart';
-import 'package:chat_app/widgets/chat_user_card.dart';
+import 'package:chat_app/scrrens/newscrren.dart';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({
+  const MyHomePage({
     super.key,
   });
 
@@ -21,24 +18,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<int> selected = [];
   List<Chatuser> list = [];
+  bool isLoaded = false;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    UserData.currentUserInfo();
+    loadData();
+  }
+
+  loadData() async {
+    setState(() {
+      isLoaded = false;
+    });
+    await UserData.currentUserInfo();
 
     SystemChannels.lifecycle.setMessageHandler((message) {
-      if (message.toString().contains('resume'))
+      if (message.toString().contains('resume')) {
         UserData.updateActiveProfile(true);
-      if (message.toString().contains('pause'))
+      }
+      if (message.toString().contains('pause')) {
         UserData.updateActiveProfile(false);
+      }
 
       return Future.value(message);
     });
-    CustomNotification().requesnotificationPermission();
-    FirebaseMessaging.instance.getToken().then((value) {
-      print(value);
+    await CustomNotification().requesnotificationPermission();
+    setState(() {
+      isLoaded = true;
     });
   }
 
@@ -46,102 +55,53 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     mq = MediaQuery.of(context).size;
 
-    return Scaffold(
-        // floatingActionButton: FloatingActionButton(
-        //   backgroundColor: Color.fromARGB(255, 180, 218, 248),
-        //   onPressed: () {
-        //     _addChatUserDialog();
-        //   },
-        //   child: Icon(
-        //     Icons.message,
-        //     color: Colors.black,
-        //   ),
-        // ),
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: InkWell(
-                  onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return ProfileScrreen(user: UserData.mee);
-                    }));
-                  },
-                  child: const Icon(
-                    Icons.person,
-                    color: Color.fromARGB(255, 180, 218, 248),
-                  )),
-            )
-          ],
-          backgroundColor: Colors.black,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: Hero(
-                    tag: UserData.user.photoURL.toString(),
-                    child: CachedNetworkImage(
-                      imageUrl: UserData.user.photoURL.toString(),
-                      fit: BoxFit.cover,
-                    ),
+    return isLoaded
+        ? SafeArea(
+            child: Scaffold(
+              
+                backgroundColor: const Color.fromARGB(255, 8, 8, 8),
+                body: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      StreamBuilder(
+                        stream: UserData.getAlluser(),
+                        builder: (context, snapshot) {
+                          switch (snapshot.connectionState) {
+                            case ConnectionState.waiting:
+                            case ConnectionState.none:
+                              return Center(
+                                child: getShimmerLoading(),
+                              );
+                            case ConnectionState.active:
+                            case ConnectionState.done:
+                              final data = snapshot.data?.docs;
+                              return NewScrren(
+                                data: data,
+                              );
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                ),
+                )),
+          )
+        : getShimmerLoading();
+  }
+
+  Widget getShimmerLoading() {
+    return Center(
+      child: ListView.builder(
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+              child: SizedBox(
+                height: 48,
+                child: ColoredBox(color: Colors.white),
               ),
-              const SizedBox(
-                width: 10,
-              ),
-              Hero(
-                tag: UserData.user.displayName.toString(),
-                child: Text(
-                  UserData.user.displayName.toString(),
-                  style: const TextStyle(
-                      color: Color.fromARGB(255, 180, 218, 248),
-                      fontFamily: "Acme"),
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: StreamBuilder(
-          stream: UserData.getAlluser(),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-              case ConnectionState.none:
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              case ConnectionState.active:
-              case ConnectionState.done:
-                final data = snapshot.data?.docs;
-                list = data?.map((e) => Chatuser.fromJson(e.data())).toList() ??
-                    [];
-                if (list.isNotEmpty) {
-                  return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: list.length,
-                      itemBuilder: (context, index) {
-                        return ChatUserCard(index: 0, user: list[index]);
-                      });
-                } else {
-                  return const Center(
-                      child: Text(
-                    "No result found",
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 180, 218, 248),
-                    ),
-                  ));
-                }
-            }
-          },
-        ));
+              baseColor: Color.fromARGB(255, 180, 218, 248),
+              highlightColor: Colors.white);
+        },
+      ),
+    );
   }
 
   // void _addChatUserDialog() {

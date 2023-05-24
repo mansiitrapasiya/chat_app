@@ -1,12 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/data/userdata.dart';
 import 'package:chat_app/model.dart';
 import 'package:chat_app/scrrens/botombarr.dart';
-import 'package:chat_app/scrrens/myhomepage.dart';
+
 import 'package:chat_app/widgets/chat_user_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 
 class SerachPage extends StatefulWidget {
   const SerachPage({super.key});
@@ -17,23 +14,20 @@ class SerachPage extends StatefulWidget {
 
 class _SerachPageState extends State<SerachPage> {
   List<Chatuser> list = [];
-  List abc = [];
   final List<Chatuser> _serachlist = [];
   bool isSerach = false;
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-      
         return Future(() {
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => BotomBarr(navIndex: 0),
+                builder: (context) => const BotomBarr(navIndex: 0),
               ));
           return true;
         });
-
       },
       child: Scaffold(
           backgroundColor: Colors.black,
@@ -110,11 +104,12 @@ class _SerachPageState extends State<SerachPage> {
                           [];
                   if (list.isNotEmpty) {
                     return ListView.builder(
-                        physics: BouncingScrollPhysics(),
-                        itemCount: isSerach ? _serachlist.length : abc.length,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: isSerach ? _serachlist.length : list.length,
                         itemBuilder: (context, index) {
                           return ChatUserCard(
-                              index: 0,
+                              isHide: false,
+                              index: index,
                               user:
                                   isSerach ? _serachlist[index] : list[index]);
                         });
