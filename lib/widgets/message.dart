@@ -5,7 +5,6 @@ import 'package:chat_app/helper/dilouge.dart';
 import 'package:chat_app/msgmodel.dart';
 import 'package:chat_app/pdffile.dart';
 import 'package:chat_app/scrrens/heropage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,7 +29,6 @@ class _MessagePageState extends State<MessagePage> {
         child: _blueMsg());
   }
 
-  ///for sender
   Widget _blueMsg() {
     bool isMe = UserData.user.uid == widget.mesage.formId;
     return Row(
@@ -52,11 +50,11 @@ class _MessagePageState extends State<MessagePage> {
                             decoration: BoxDecoration(
                               color: Color.fromRGBO(180, 218, 248, 1),
                               borderRadius: isMe
-                                  ? BorderRadius.only(
+                                  ? const BorderRadius.only(
                                       bottomLeft: Radius.circular(15),
                                       topLeft: Radius.circular(15),
                                       topRight: Radius.circular(15))
-                                  : BorderRadius.only(
+                                  : const BorderRadius.only(
                                       bottomRight: Radius.circular(15),
                                       topLeft: Radius.circular(15),
                                       topRight: Radius.circular(15)),
@@ -185,66 +183,74 @@ class _MessagePageState extends State<MessagePage> {
                 topLeft: Radius.circular(25), topRight: Radius.circular(25))),
         context: context,
         builder: (_) {
-          return ListView(
-            shrinkWrap: true,
-            children: [
-              _OptionItem(
-                  icon: const Icon(Icons.copy_all_outlined),
-                  name: 'Copy Text',
-                  onTap: () async {
-                    await Clipboard.setData(
-                            ClipboardData(text: widget.mesage.msg))
-                        .then((value) {
-                      Navigator.pop(context);
-                      Diallougs.showSnackBar(context, "Text Copied");
-                    });
-                  }),
-              Column(
-                children: [
-                  _OptionItem(
-                      icon: const Icon(Icons.download_rounded),
-                      name: 'Save Image',
-                      onTap: () async {
-                        try {
-                          await GallerySaver.saveImage(widget.mesage.msg,
-                                  albumName: 'Chat app')
-                              .then((value) {
-                            Navigator.pop(context);
-                            if (value != null && value) {
-                              Diallougs.showSnackBar(context, "Image saved !");
+          return ListView(shrinkWrap: true, children: [
+            widget.mesage.type == Type.text
+                ? Column(
+                    children: [
+                      _OptionItem(
+                          icon: const Icon(Icons.copy_all_outlined),
+                          name: 'Copy Text',
+                          onTap: () async {
+                            await Clipboard.setData(
+                                    ClipboardData(text: widget.mesage.msg))
+                                .then((value) {
+                              Navigator.pop(context);
+                              Diallougs.showSnackBar(context, "Text Copied");
+                            });
+                          }),
+                      const Divider(
+                        color: Colors.black,
+                        endIndent: 20,
+                        indent: 20,
+                      ),
+                      _OptionItem(
+                          icon: const Icon(Icons.delete),
+                          name: 'Delelet Message',
+                          onTap: () async {
+                            await UserData.deleteMessage(widget.mesage)
+                                .then((value) {
+                              Navigator.pop(context);
+                            });
+                          }),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      _OptionItem(
+                          icon: const Icon(Icons.download_rounded),
+                          name: 'Save Image',
+                          onTap: () async {
+                            try {
+                              await GallerySaver.saveImage(widget.mesage.msg,
+                                      albumName: 'Chat app')
+                                  .then((value) {
+                                Navigator.pop(context);
+                                if (value != null && value) {
+                                  Diallougs.showSnackBar(
+                                      context, "Image saved !");
+                                }
+                              });
+                            } catch (e) {
+                              print('Imageutl:${widget.mesage.msg}');
                             }
-                          });
-                        } catch (e) {
-                          print('Imageutl:${widget.mesage.msg}');
-                        }
-                      }),
-                  const Divider(
-                    color: Colors.black,
-                    endIndent: 20,
-                    indent: 20,
-                  ),
-                  _OptionItem(
-                      icon: Icon(Icons.delete),
-                      name: 'Delelet Message',
-                      onTap: () async {
-                        await UserData.deleteMessage(widget.mesage)
-                            .then((value) {
-                          Navigator.pop(context);
-                        });
-                      }),
-                ],
-              ),
-              //  if (widget.mesage.type == Type.text && isSelc)
-              //   _OptionItem(
-              //       icon: Icon(Icons.delete),
-              //       name: 'Delelet Message',
-              //       onTap: () async {
-              //         await UserData.deleteMessage(widget.mesage).then((value) {
-              //           Navigator.pop(context);
-              //         });
-              //       }),
-            ],
-          );
+                          }),
+                      const Divider(
+                        color: Colors.black,
+                        endIndent: 20,
+                        indent: 20,
+                      ),
+                      _OptionItem(
+                          icon: const Icon(Icons.delete),
+                          name: 'Delelet Message',
+                          onTap: () async {
+                            await UserData.deleteMessage(widget.mesage)
+                                .then((value) {
+                              Navigator.pop(context);
+                            });
+                          }),
+                    ],
+                  )
+          ]);
         });
   }
 }

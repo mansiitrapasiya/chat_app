@@ -12,6 +12,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
+import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 
 class ChatPage extends StatefulWidget {
   final Chatuser user;
@@ -23,6 +25,35 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final textController = TextEditingController();
+  late VideoPlayerController _controller;
+
+  ///======================video=============
+
+  Future<void> _pickVido(ImageSource source) async {
+    FilePickerResult? result = await FilePicker.platform
+        .pickFiles(allowedExtensions: ['video'], type: FileType.video);
+
+    if (result != null) {
+      // FutureBuilder(
+      //   future: _video,
+      //   builder: (context, snapshot) {
+      //     if (snapshot.connectionState == ConnectionState.done) {
+      //       return AspectRatio(
+      //         aspectRatio: _controller.value.aspectRatio,
+      //         child: VideoPlayer(_controller),
+      //       );
+      //     } else {
+      //       return const Center(
+      //         child: CircularProgressIndicator(),
+      //       );
+      //     }
+      //   },
+      // );
+    }
+  }
+
+//===============================================================================
+
   @override
   Widget build(BuildContext context) {
     List abc = [];
@@ -242,22 +273,30 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 InkWell(
                     onTap: () async {
-                      FilePickerResult? result = await FilePicker.platform
-                          .pickFiles(
-                              allowedExtensions: ['pdf'],
-                              type: FileType.custom);
+                      // FilePickerResult? result = await FilePicker.platform
+                      //     .pickFiles(
+                      //         allowedExtensions: ['pdf'],
+                      //         type: FileType.custom);
 
-                      if (result != null) {
-                        // File file = File(result.files.single.path!);
-                        log(result.files.first.name);
-                        await UserData.chatPdf(
-                            widget.user,
-                            File(result.files.single.path!),
-                            result.files.first.name);
-                      }
+                      // if (result != null) {
+                      //   // File file = File(result.files.single.path!);
+                      //   log(result.files.first.name);
+                      //   await UserData.chatPdf(
+                      //       widget.user,
+                      //       File(result.files.single.path!),
+                      //       result.files.first.name);
+                      // }
+
+                      final PermissionState _ps =
+                          await PhotoManager.requestPermissionExtend();
+                      if (_ps.isAuth) {
+                      } else {}
+
+
+                      // print(result);
                     },
                     child: Icon(Icons.attach_file_outlined)),
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 InkWell(
@@ -270,7 +309,7 @@ class _ChatPageState extends State<ChatPage> {
                       }
                     },
                     child: Icon(Icons.camera_alt_outlined)),
-              const  SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 InkWell(
@@ -283,7 +322,7 @@ class _ChatPageState extends State<ChatPage> {
                       }
                     },
                     child: Icon(Icons.image)),
-               const SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
               ],
