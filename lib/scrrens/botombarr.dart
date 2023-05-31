@@ -24,11 +24,7 @@ class _BotomBarrState extends State<BotomBarr> {
   final ListQueue<int> _navigationQueue = ListQueue();
   DateTime currentBackPressTime = DateTime.now();
 
-  List scrren = [
-    MyHomePage(),
-    SerachPage(),
-    Videoscreen(),
-  ];
+  List scrren = [MyHomePage(), SerachPage(), D3Animation()];
 
   void onTapped(int index) {
     setState(() {
@@ -98,7 +94,7 @@ class _BotomBarrState extends State<BotomBarr> {
                     // activeColor: Colors.black,
                     iconSize: 28,
                     tabBackgroundColor: Colors.black,
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     tabs: const [
                       GButton(
                         iconColor: Color.fromARGB(255, 180, 218, 248),

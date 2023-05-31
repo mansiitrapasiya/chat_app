@@ -80,12 +80,13 @@ class _NewScrrenState extends State<NewScrren> {
                           )),
                     ],
                   )
+                  
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         selected.length.toString(),
-                        style: TextStyle(color: Colors.white),
+                        style:const TextStyle(color: Colors.white),
                       ),
                       InkWell(
                           onTap: () async {

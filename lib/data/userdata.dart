@@ -39,7 +39,14 @@ class UserData {
     try {
       final body = {
         "to": chatuser.pushToken,
-        "notification": {"title": UserData.mee.name, "body": msg},
+        "notification": {
+          "title": UserData.mee.name,
+          "body": msg,
+          "sound": "doraemon"
+        },
+        "android": {
+          "notification": {"channel_id": "message"}
+        },
       };
 
       var response =
